@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<!-- saved from url=(0111)file:///D:/OneDrive%20-%20Techart%20India%20Pvt%20Ltd/Desktop/AR%20Sheet%20Phase%2014_Final%20Sheet_Phase2.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online AR Dashboard</title>
+    <script src="./AR Sheet Phase 14_Final Sheet_Phase2_files/xlsx.full.min.js.download"></script>
+    <style>
+        :root{
+            --bg:#f4f7fb;--panel:#fff;--panel-2:#f8fafc;--text:#111827;--muted:#6b7280;--line:#e5e7eb;
+            --primary:#2563eb;--primary-2:#1d4ed8;--success:#16a34a;--danger:#dc2626;--shadow:0 10px 30px rgba(15,23,42,.08);
+            --radius:16px;
+        }
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:linear-gradient(180deg,#f8fbff 0%,var(--bg) 100%);color:var(--text)}
+        .dashboard-container{max-width:1800px;margin:0 auto;padding:24px}
+        .dashboard-header,.filter-section,.summary-table-card,.ledger-section,.modal,.lob-filter-section{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+        .dashboard-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+        .dashboard-title{font-size:28px;font-weight:700;color:var(--primary)}
+        .header-actions,.filter-buttons,.ledger-controls,.lob-filter-controls,.column-controls{display:flex;gap:10px;flex-wrap:wrap}
+        .btn,.filter-btn,.export-btn,.ledger-filter-clear,.ledger-filter-select,.ledger-filter-input,.form-input,.form-select,.search-input,.column-toggle-btn{border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--text)}
+        .btn{padding:10px 16px;cursor:pointer;font-weight:600}
+        .btn-primary,.filter-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+        .btn-secondary{background:#fff;color:var(--primary);border-color:#bfd2ff}
+        .btn-success{background:var(--success);color:#fff;border-color:var(--success)}
+        .btn-danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+        .filter-section,.lob-filter-section{display:flex;align-items:center;gap:16px;padding:14px 18px;margin-bottom:20px;flex-wrap:wrap}
+        .filter-label{font-weight:700;color:var(--muted)}
+        .search-box{margin-left:auto}
+        .search-input{padding:10px 14px;min-width:320px}
+        .kpi-section{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+        .kpi-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;cursor:pointer}
+        .kpi-card.active{outline:2px solid rgba(37,99,235,.18)}
+        .kpi-title{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px}
+        .kpi-value{font-size:28px;font-weight:800}
+        .kpi-count{font-size:13px;color:var(--muted)}
+        .summary-table-card{overflow:hidden;margin-bottom:20px}
+        .summary-table-header,.ledger-header{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+        .summary-header{display:flex;justify-content:flex-end;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+        .summary-list{max-height:360px;overflow:auto}
+        .summary-item{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);cursor:pointer}
+        .summary-item.active{background:#eff6ff}
+        .summary-item-name{font-weight:600}
+        .summary-item-value{font-weight:700;color:var(--primary)}
+        .summary-tables-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+        .ledger-section{overflow:hidden}
+        .ledger-summary-boxes{display:flex;gap:12px;flex-wrap:wrap}
+        .ledger-summary-box{background:rgba(255,255,255,.14);padding:10px 14px;border-radius:12px;min-width:140px}
+        .table-container{overflow-x:auto}
+        table{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+        th{background:#f8fafc;padding:13px 12px;text-align:left;font-weight:700;color:#374151;border-bottom:1px solid var(--line);white-space:nowrap}
+        td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+        tr:hover{background:#f9fbff}
+        .grand-total-row td{font-weight:800;background:#f8fafc}
+        .export-btn{padding:8px 12px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25);cursor:pointer}
+        .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;justify-content:center;align-items:center;z-index:1000;padding:18px}
+        .modal-overlay.active{display:flex}
+        .modal{width:100%;max-width:1200px;max-height:90vh;overflow:auto}
+        .modal-header{background:linear-gradient(135deg,var(--primary),var(--primary-2));color:#fff;padding:18px 22px;display:flex;justify-content:space-between;align-items:center}
+        .modal-body{padding:22px}
+        .modal-footer{padding:16px 22px;background:#f8fafc;display:flex;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+        .form-group{margin-bottom:18px}
+        .form-label{display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:8px}
+        .form-input,.form-select{width:100%;padding:12px 14px}
+        .entry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+        .clickable-cell{cursor:pointer;color:#2563eb;text-decoration:underline}
+        .negative-amount{color:#dc2626;font-weight:700}
+        .file-input{display:none}
+        .recovery-banner{display:none;margin-bottom:16px;padding:14px 16px;border:1px solid #f59e0b;background:#fffbeb;color:#92400e;border-radius:12px}
+        .recovery-banner.active{display:block}
+        .column-panel{padding:14px 18px;border-bottom:1px solid var(--line);background:#fff}
+        .column-toggle-btn{padding:8px 12px;cursor:pointer}
+        .hidden-col{display:none !important;}
+        @media(max-width:1200px){.kpi-section,.summary-tables-grid{grid-template-columns:1fr}.entry-grid{grid-template-columns:1fr 1fr}}
+        @media(max-width:700px){.dashboard-header,.filter-section,.ledger-header,.lob-filter-section{flex-direction:column;align-items:flex-start}.search-box{margin-left:0;width:100%}.search-input{width:100%;min-width:0}.entry-grid{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <div id="recoveryBanner" class="recovery-banner"></div>
+
+    <header class="dashboard-header">
+        <h1 class="dashboard-title">Online AR Dashboard</h1>
+        <div class="header-actions">
+            <button class="btn btn-secondary" onclick="openManualInvoiceModal()">➕ Add New Invoice</button>
+            <button class="btn btn-secondary" onclick="downloadInvoiceTemplate()">📥 Export Invoices</button>
+            <button class="btn btn-secondary" onclick="document.getElementById(&#39;excelImportInput&#39;).click()">📤 Import Excel</button>
+            <button class="btn btn-primary" onclick="exportCurrentView()">📤 Export Current View</button>
+            <button class="btn btn-success" onclick="exportMasterLedger()">📊 Export Master Ledger</button>
+        </div>
+    </header>
+
+    <section class="lob-filter-section">
+        <span class="filter-label">LOB / Sub-LOB Filter:</span>
+        <div class="lob-filter-controls">
+            <select id="lobFilter" class="ledger-filter-select" onchange="applyLedgerFilters()">
+                <option value="">All LOB</option>
+                <option value="Project Debtor">Project Debtor</option>
+                <option value="Online Debtor">Online Debtor</option>
+            </select>
+            <select id="subLobFilter" class="ledger-filter-select" onchange="applyLedgerFilters()">
+                <option value="">All Sub-LOB</option>
+                <option value="Project Debtor">Project Debtor</option>
+                <option value="Service debtor">Service debtor</option>
+            </select>
+            <select id="regionFilter" class="ledger-filter-select" onchange="applyLedgerFilters()">
+                <option value="">All Region</option>
+                <option value="East">East</option>
+                <option value="West">West</option>
+                <option value="North">North</option>
+                <option value="South">South</option>
+            </select>
+        </div>
+    </section>
+
+    <input type="file" id="excelImportInput" class="file-input" accept=".xlsx,.xls,.csv" onchange="importExcelFile(event)">
+
+    <section class="filter-section">
+        <span class="filter-label">Quick Filters:</span>
+        <div class="filter-buttons">
+            <button class="filter-btn" data-filter="all" onclick="applyQuickFilter(&#39;all&#39;)">All Invoices</button>
+            <button class="filter-btn" data-filter="due" onclick="applyQuickFilter(&#39;due&#39;)">Due Invoices Only</button>
+            <button class="filter-btn active" data-filter="not-submitted" onclick="applyQuickFilter(&#39;not-submitted&#39;)">Not Submitted Only</button>
+        </div>
+        <div class="search-box">
+            <input type="text" class="search-input" id="globalSearch" placeholder="🔍 Search Invoice #, Customer, PO #, Job #..." oninput="performSearch()">
+        </div>
+    </section>
+
+    <section class="kpi-section">
+        <div class="kpi-card" data-kpi="outstanding" onclick="filterByKPI(&#39;outstanding&#39;)">
+            <div class="kpi-title">Total Outstanding</div><div class="kpi-value" id="kpiOutstandingValue">₹2,81,798.16</div><div class="kpi-count" id="kpiOutstandingCount">3 invoices</div>
+        </div>
+        <div class="kpi-card" data-kpi="overdue" onclick="filterByKPI(&#39;overdue&#39;)">
+            <div class="kpi-title">Total Overdue Amount</div><div class="kpi-value" id="kpiOverdueValue">₹1,01,836</div><div class="kpi-count" id="kpiOverdueCount">1 invoices</div>
+        </div>
+        <div class="kpi-card active" data-kpi="notSubmitted" onclick="filterByKPI(&#39;notSubmitted&#39;)">
+            <div class="kpi-title">Not Submitted Count</div><div class="kpi-value" id="kpiNotSubmittedValue">1</div><div class="kpi-count" id="kpiNotSubmittedCount">₹2,94,816.16 value</div>
+        </div>
+    </section>
+
+    <section class="summary-table-card">
+        <div class="summary-table-header">
+            <span>📈 Generic Customer Collection Summary</span>
+            <button class="export-btn" onclick="exportTableData(&#39;genericCustomerSummary&#39;)">Export File</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead id="genericCustomerSummaryHead"><tr><th>Generic Customer</th><th>Total Overdue Amount</th><th>June Collection</th><th>Not Submitted</th></tr></thead>
+                <tbody id="genericCustomerSummaryBody"><tr><td>Optum</td><td><span class="">₹1,01,836</span></td><td><span class="">₹0</span></td><td><span class="">₹2,94,816.16</span></td></tr><tr class="grand-total-row"><td>Grand Total</td><td><span class="">₹1,01,836</span></td><td><span class="">₹0</span></td><td><span class="">₹2,94,816.16</span></td></tr></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="summary-tables-grid">
+        <section class="summary-table-card">
+            <div class="summary-table-header">
+                <span>📋 Customer Summary</span>
+                <button class="export-btn" onclick="exportTableData(&#39;customerSummary&#39;)">Export File</button>
+            </div>
+            <div class="summary-header">
+                <button class="summary-export" onclick="setSummaryMode(&#39;customer&#39;,&#39;totalInvoice&#39;)">Invoice Value</button>
+                <button class="summary-export" onclick="setSummaryMode(&#39;customer&#39;,&#39;outstanding&#39;)">Outstanding</button>
+                <button class="summary-export" onclick="setSummaryMode(&#39;customer&#39;,&#39;overdue&#39;)">Overdue</button>
+                <button class="summary-export" onclick="setSummaryMode(&#39;customer&#39;,&#39;notSubmitted&#39;)">Not Submitted</button>
+            </div>
+            <div class="summary-list" id="customerSummaryList">
+    <div class="summary-item " onclick="filterByCustomer(&#39;Optum&#39;)">
+      <div class="summary-item-name">Optum</div>
+      <div class="summary-item-value">₹2,81,798.16</div>
+    </div></div>
+        </section>
+        <section class="summary-table-card">
+            <div class="summary-table-header">
+                <span>👤 Responsible Person Summary</span>
+                <button class="export-btn" onclick="exportTableData(&#39;personSummary&#39;)">Export File</button>
+            </div>
+            <div class="summary-header">
+                <button class="summary-export" onclick="setSummaryMode(&#39;person&#39;,&#39;outstanding&#39;)">Outstanding</button>
+                <button class="summary-export" onclick="setSummaryMode(&#39;person&#39;,&#39;overdue&#39;)">Overdue</button>
+                <button class="summary-export" onclick="setSummaryMode(&#39;person&#39;,&#39;notSubmitted&#39;)">Not Submitted</button>
+            </div>
+            <div class="summary-list" id="personSummaryList">
+    <div class="summary-item " onclick="filterByPerson(&#39;Yatendra&#39;)">
+      <div class="summary-item-name">Yatendra</div>
+      <div class="summary-item-value">₹2,81,798.16</div>
+    </div></div>
+        </section>
+    </section>
+
+    <section class="ledger-section">
+        <div class="ledger-header">
+            <span class="ledger-title">📑 Master Invoice Ledger</span>
+            <span class="ledger-info" id="ledgerInfo">Showing 3 invoices</span>
+            <div class="ledger-summary-boxes">
+                <div class="ledger-summary-box"><div class="ledger-summary-label">Pending Amount</div><div class="ledger-summary-value" id="ledgerPendingValue">₹2,81,798.16</div></div>
+                <div class="ledger-summary-box"><div class="ledger-summary-label">LOB</div><div class="ledger-summary-value" id="ledgerLobValue">Project Debtor</div></div>
+                <div class="ledger-summary-box"><div class="ledger-summary-label">Sub-LOB</div><div class="ledger-summary-value" id="ledgerSubLobValue">All</div></div>
+                <div class="ledger-summary-box"><div class="ledger-summary-label">Region</div><div class="ledger-summary-value" id="ledgerRegionValue">All</div></div>
+            </div>
+            <div class="ledger-controls">
+                <select class="ledger-filter-select" id="filterGenericCustomer" onchange="applyLedgerFilters()"><option value="">Generic Customer</option><option value="Blue Star">Blue Star</option><option value="CBRE">CBRE</option><option value="HCL">HCL</option><option value="Hindustan Petroleum">Hindustan Petroleum</option><option value="ITC">ITC</option><option value="JLL">JLL</option><option value="L&amp;T">L&amp;T</option><option value="MONDELEZ">MONDELEZ</option><option value="Oberoi">Oberoi</option><option value="Optum">Optum</option><option value="Optum-Service">Optum-Service</option><option value="PVR">PVR</option><option value="Paytm">Paytm</option><option value="Yotta">Yotta</option></select>
+                <select class="ledger-filter-select" id="filterCustomerName" onchange="applyLedgerFilters()"><option value="">Customer Name</option><option value="( AK02 ) HCL TECHNOLOGIES LIMITED">( AK02 ) HCL TECHNOLOGIES LIMITED</option><option value="( AM07 ) HCL TECHNOLOGIES LIMITED">( AM07 ) HCL TECHNOLOGIES LIMITED</option><option value="( AM07 ) HCL TECHNOLOGIES LIMITED - SERVICE A/C">( AM07 ) HCL TECHNOLOGIES LIMITED - SERVICE A/C</option><option value="( AN04 ) HCL TECHNOLOGIES LIMITED - SERVICE A/C">( AN04 ) HCL TECHNOLOGIES LIMITED - SERVICE A/C</option><option value="( AP03 ) HCL TECHNOLOGIES LIMITED">( AP03 ) HCL TECHNOLOGIES LIMITED</option><option value="( AP04 ) HCL TECHNOLOGIES LIMITED">( AP04 ) HCL TECHNOLOGIES LIMITED</option><option value="( AP05 ) HCL TECHNOLOGIES LIMITED">( AP05 ) HCL TECHNOLOGIES LIMITED</option><option value="( AP08 ) HCL Technologies Limited">( AP08 ) HCL Technologies Limited</option><option value="( LM01 ) HCL TECHNOLOGIES LIMITED (27)">( LM01 ) HCL TECHNOLOGIES LIMITED (27)</option><option value="( NM01 ) HCL Technologies Limited">( NM01 ) HCL Technologies Limited</option><option value="Blue Star Limited (03)">Blue Star Limited (03)</option><option value="CBRE SOUTH ASIA PRIVATE LIMITED (36)">CBRE SOUTH ASIA PRIVATE LIMITED (36)</option><option value="CBRE South Asia Pvt. Ltd (33)">CBRE South Asia Pvt. Ltd (33)</option><option value="CBRE South Asia Pvt. Ltd.">CBRE South Asia Pvt. Ltd.</option><option value="CBRE South Asia Pvt. Ltd. (09)">CBRE South Asia Pvt. Ltd. (09)</option><option value="CBRE South Asia Pvt. Ltd. (29)">CBRE South Asia Pvt. Ltd. (29)</option><option value="EIH ASSOCIATED HOTELS LIMITED (09)">EIH ASSOCIATED HOTELS LIMITED (09)</option><option value="EIH ASSOCIATED HOTELS LIMITED (37) - Trident Vizag">EIH ASSOCIATED HOTELS LIMITED (37) - Trident Vizag</option><option value="EIH Associated Hotels Limited(2)">EIH Associated Hotels Limited(2)</option><option value="EIH Associated Hotels Limited(2) - Project">EIH Associated Hotels Limited(2) - Project</option><option value="EIH Associated Hotels Limited(21)">EIH Associated Hotels Limited(21)</option><option value="EIH LIMITED (07)">EIH LIMITED (07)</option><option value="EIH LIMITED (Bandra Kurla)">EIH LIMITED (Bandra Kurla)</option><option value="EIH LIMITED - RAJGARH PALACE">EIH LIMITED - RAJGARH PALACE</option><option value="EIH LIMITED - RAJGARH PALACE ">EIH LIMITED - RAJGARH PALACE </option><option value="EIH LIMITED Unit : AMADEO (27)">EIH LIMITED Unit : AMADEO (27)</option><option value="EIH Limited - Cou Cou Patisserie">EIH Limited - Cou Cou Patisserie</option><option value="EIH Limited Rajgarh Palace - Service">EIH Limited Rajgarh Palace - Service</option><option value="Eih Without Payment Advice">Eih Without Payment Advice</option><option value="GDC Data Centre Private Limited">GDC Data Centre Private Limited</option><option value="HCL Retention">HCL Retention</option><option value="HCL TECHNOLOGIES LIMITED AN04 ">HCL TECHNOLOGIES LIMITED AN04 </option><option value="HCL Withheld">HCL Withheld</option><option value="HCL Without Advice">HCL Without Advice</option><option value="HINDUSTAN PETROLEUM CORPORATION LIMITED">HINDUSTAN PETROLEUM CORPORATION LIMITED</option><option value="ITC Limited (06)">ITC Limited (06)</option><option value="JONES LANG Jones Lang LaSalle Property Consultants (India) Private Limited((23">JONES LANG Jones Lang LaSalle Property Consultants (India) Private Limited((23</option><option value="JONES LANG Jones Lang LaSalle Property Consultants (India) Private Limited(09)">JONES LANG Jones Lang LaSalle Property Consultants (India) Private Limited(09)</option><option value="Jones Lang LaSalle Property Consultants (India) Private Limited (04)">Jones Lang LaSalle Property Consultants (India) Private Limited (04)</option><option value="Jones Lang LaSalle Property Consultants (India) Private Limited (05)">Jones Lang LaSalle Property Consultants (India) Private Limited (05)</option><option value="L&amp;T TECHNOLOGY SERVICES LIMITED">L&amp;T TECHNOLOGY SERVICES LIMITED</option><option value="M/S PVR INOX LIMITED">M/S PVR INOX LIMITED</option><option value="MONDELEZ INDIA FOODS PVT. LTD.">MONDELEZ INDIA FOODS PVT. LTD.</option><option value="MUMTAZ HOTELS LIMITED">MUMTAZ HOTELS LIMITED</option><option value="Metro Eco Green Resort Ltd.">Metro Eco Green Resort Ltd.</option><option value="NIDP DEVELOPERS PRIVATE LIMITED">NIDP DEVELOPERS PRIVATE LIMITED</option><option value="NMDC Data Centre Private Limited">NMDC Data Centre Private Limited</option><option value="OBEROI HOTELS PRIVATE LIMITED (07)">OBEROI HOTELS PRIVATE LIMITED (07)</option><option value="OPTUM GLOBAL SOLUTIONS (INDIA) PRIVATE LIMITED (27)">OPTUM GLOBAL SOLUTIONS (INDIA) PRIVATE LIMITED (27)</option><option value="OPTUM GLOBAL SOLUTIONS (INDIA) PRIVATE LIMITED (36)">OPTUM GLOBAL SOLUTIONS (INDIA) PRIVATE LIMITED (36)</option><option value="OPTUM GLOBAL SOLUTIONS (INDIA) PRIVATE LIMITED (36) Project">OPTUM GLOBAL SOLUTIONS (INDIA) PRIVATE LIMITED (36) Project</option><option value="OPTUM without Advice">OPTUM without Advice</option><option value="Optum Health Technology (India) Pvt. Ltd (27)">Optum Health Technology (India) Pvt. Ltd (27)</option><option value="Orbit Resorts Limited">Orbit Resorts Limited</option><option value="PAYTM PAYMENTS SERVICES LIMITED (09)">PAYTM PAYMENTS SERVICES LIMITED (09)</option><option value="PVR INOX LIMITED (01)">PVR INOX LIMITED (01)</option><option value="PVR INOX LIMITED (03)">PVR INOX LIMITED (03)</option><option value="PVR INOX LIMITED (04)">PVR INOX LIMITED (04)</option><option value="PVR INOX LIMITED (05)">PVR INOX LIMITED (05)</option><option value="PVR INOX LIMITED (06)">PVR INOX LIMITED (06)</option><option value="PVR INOX LIMITED (07)">PVR INOX LIMITED (07)</option><option value="PVR INOX LIMITED (18)">PVR INOX LIMITED (18)</option><option value="PVR INOX LIMITED (19)">PVR INOX LIMITED (19)</option><option value="PVR INOX LIMITED (20)">PVR INOX LIMITED (20)</option><option value="PVR INOX LIMITED (21)">PVR INOX LIMITED (21)</option><option value="PVR INOX LIMITED (22)">PVR INOX LIMITED (22)</option><option value="PVR INOX LIMITED (24)">PVR INOX LIMITED (24)</option><option value="PVR INOX LIMITED (27)">PVR INOX LIMITED (27)</option><option value="PVR INOX LIMITED (29)">PVR INOX LIMITED (29)</option><option value="PVR INOX LIMITED (30)">PVR INOX LIMITED (30)</option><option value="PVR INOX LIMITED (33)">PVR INOX LIMITED (33)</option><option value="PVR INOX LIMITED (34)">PVR INOX LIMITED (34)</option><option value="PVR INOX LIMITED (36)">PVR INOX LIMITED (36)</option><option value="XLHEALTH CORPORATION INDIA PRIVATE LIMITED">XLHEALTH CORPORATION INDIA PRIVATE LIMITED</option><option value="YOTTA DATA SERVICES PRIVATE LIMITED (07)">YOTTA DATA SERVICES PRIVATE LIMITED (07)</option><option value="YOTTA DATA SERVICES PRIVATE LIMITED (27)">YOTTA DATA SERVICES PRIVATE LIMITED (27)</option></select>
+                <select class="ledger-filter-select" id="filterResponsiblePerson" onchange="applyLedgerFilters()"><option value="">Responsible Person</option><option value="Achintya">Achintya</option><option value="Atul">Atul</option><option value="Gaurav">Gaurav</option><option value="N/A">N/A</option><option value="Naresh">Naresh</option><option value="Pawan">Pawan</option><option value="Prashant">Prashant</option><option value="Satish">Satish</option><option value="Yatendra">Yatendra</option></select>
+                <select class="ledger-filter-select" id="filterLob" onchange="applyLedgerFilters()"><option value="">LOB</option><option value="Online Debtor">Online Debtor</option><option value="Project Debtor">Project Debtor</option></select>
+                <select class="ledger-filter-select" id="filterSubLob" onchange="applyLedgerFilters()"><option value="">Sub-LOB</option><option value="Project Debtor">Project Debtor</option><option value="Service Debtor">Service Debtor</option><option value="Service debtor">Service debtor</option></select>
+                <select class="ledger-filter-select" id="filterRegion" onchange="applyLedgerFilters()"><option value="">Region</option><option value="East">East</option><option value="North">North</option><option value="South">South</option><option value="West">West</option></select>
+                <select class="ledger-filter-select" id="filterStatus" onchange="applyLedgerFilters()"><option value="">Status</option><option value="Pending">Pending</option><option value="Partially Paid">Partially Paid</option><option value="Paid">Paid</option><option value="Cancelled">Cancelled</option></select>
+                <input class="ledger-filter-input" id="filterInvoiceNumber" placeholder="Invoice #" oninput="applyLedgerFilters()">
+                <input class="ledger-filter-input" id="filterJobNumber" placeholder="Job #" oninput="applyLedgerFilters()">
+                <input class="ledger-filter-input" id="filterPONumber" placeholder="PO #" oninput="applyLedgerFilters()">
+                <button class="ledger-filter-clear" onclick="clearLedgerFilters()">Clear Filters</button>
+            </div>
+        </div>
+
+        <div class="column-panel">
+            <span class="filter-label">Columns:</span>
+            <div class="column-controls">
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;gc&#39;)">Generic Customer</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;cn&#39;)">Customer Name</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;rp&#39;)">Responsible Person</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;lob&#39;)">LOB</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;subLob&#39;)">Sub-LOB</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;region&#39;)">Region</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;invoiceNumber&#39;)">Invoice Number</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;invoiceDate&#39;)">Invoice Date</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;jobNumber&#39;)">Job Number</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;poNumber&#39;)">PO Number</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;invoiceAmount&#39;)">Invoice Amount</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;receivedAmount&#39;)">Received Amount</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;outstandingAmount&#39;)">Outstanding</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;pendingAmount&#39;)">Pending</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;submissionDate&#39;)">Submission Date</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;paymentTerms&#39;)">Payment Terms</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;dueDate&#39;)">Due Date</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;status&#39;)">Status</button>
+                <button class="column-toggle-btn" onclick="toggleLedgerColumn(&#39;remarks&#39;)">Remarks</button>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th class="col-gc">Generic Customer</th>
+                    <th class="col-cn">Customer Name</th>
+                    <th class="col-rp">Responsible Person</th>
+                    <th class="col-lob">LOB</th>
+                    <th class="col-subLob">Sub-LOB</th>
+                    <th class="col-region hidden-col">Region</th>
+                    <th class="col-invoiceNumber">Invoice Number</th>
+                    <th class="col-invoiceDate">Invoice Date</th>
+                    <th class="col-jobNumber">Job Number</th>
+                    <th class="col-poNumber">PO Number</th>
+                    <th class="col-invoiceAmount">Invoice Amount</th>
+                    <th class="col-receivedAmount">Received Amount</th>
+                    <th class="col-outstandingAmount">Outstanding Amount</th>
+                    <th class="col-pendingAmount">Pending Amount</th>
+                    <th class="col-submissionDate">Submission Date</th>
+                    <th class="col-paymentTerms hidden-col">Payment Terms</th>
+                    <th class="col-dueDate">Due Date</th>
+                    <th class="col-status">Status</th>
+                    <th class="col-remarks">Remarks</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody id="ledgerTableBody"><tr>
+      <td class="col-gc">Optum</td>
+      <td class="col-cn">Optum Health Technology (India) Pvt. Ltd (27)</td>
+      <td class="col-rp">Yatendra</td>
+      <td class="col-lob">Project Debtor</td>
+      <td class="col-subLob">Project Debtor</td>
+      <td class="col-region hidden-col">South</td>
+      <td class="col-invoiceNumber"><strong>UP25263310</strong></td>
+      <td class="col-invoiceDate">23 Mar 2026</td>
+      <td class="col-jobNumber">TN25P0533</td>
+      <td class="col-poNumber">PO1645750</td>
+      <td class="col-invoiceAmount ">₹2,94,816.16</td>
+      <td class="col-receivedAmount clickable-cell " onclick="openReceivedModal(1782284411597)">₹0</td>
+      <td class="col-outstandingAmount ">₹2,94,816.16</td>
+      <td class="col-pendingAmount ">₹2,94,816.16</td>
+      <td class="col-submissionDate clickable-cell" onclick="openSubmissionModal(1782284411597)">Not Submitted</td>
+      <td class="col-paymentTerms hidden-col">--</td>
+      <td class="col-dueDate">--</td>
+      <td class="col-status">Pending</td>
+      <td class="col-remarks"></td>
+      <td><button class="btn btn-secondary" onclick="openEditInvoiceModal(1782284411597)">Edit</button> <button class="btn btn-danger" onclick="deleteInvoice(1782284411597)">Delete</button></td>
+    </tr><tr>
+      <td class="col-gc">Optum</td>
+      <td class="col-cn">Optum Health Technology (India) Pvt. Ltd (27)</td>
+      <td class="col-rp">Yatendra</td>
+      <td class="col-lob">Project Debtor</td>
+      <td class="col-subLob">Project Debtor</td>
+      <td class="col-region hidden-col">East</td>
+      <td class="col-invoiceNumber"><strong>UP25262454</strong></td>
+      <td class="col-invoiceDate">--</td>
+      <td class="col-jobNumber">TN25P0533</td>
+      <td class="col-poNumber">PO1645750 </td>
+      <td class="col-invoiceAmount ">₹4,42,224</td>
+      <td class="col-receivedAmount clickable-cell " onclick="openReceivedModal(1781523015436)">₹5,57,078</td>
+      <td class="col-outstandingAmount negative-amount">-₹1,14,854</td>
+      <td class="col-pendingAmount negative-amount">-₹1,14,854</td>
+      <td class="col-submissionDate clickable-cell" onclick="openSubmissionModal(1781523015436)">13 May 2026</td>
+      <td class="col-paymentTerms hidden-col">30 days</td>
+      <td class="col-dueDate">12 Jun 2026</td>
+      <td class="col-status">Pending</td>
+      <td class="col-remarks"></td>
+      <td><button class="btn btn-secondary" onclick="openEditInvoiceModal(1781523015436)">Edit</button> <button class="btn btn-danger" onclick="deleteInvoice(1781523015436)">Delete</button></td>
+    </tr><tr>
+      <td class="col-gc">Optum</td>
+      <td class="col-cn">Optum Health Technology (India) Pvt. Ltd (27)</td>
+      <td class="col-rp">Yatendra</td>
+      <td class="col-lob">Project Debtor</td>
+      <td class="col-subLob">Project Debtor</td>
+      <td class="col-region hidden-col">East</td>
+      <td class="col-invoiceNumber"><strong>UP25262627</strong></td>
+      <td class="col-invoiceDate">--</td>
+      <td class="col-jobNumber">TN25P0533</td>
+      <td class="col-poNumber"></td>
+      <td class="col-invoiceAmount ">₹4,42,224</td>
+      <td class="col-receivedAmount clickable-cell " onclick="openReceivedModal(1781523015481)">₹3,40,388</td>
+      <td class="col-outstandingAmount ">₹1,01,836</td>
+      <td class="col-pendingAmount ">₹1,01,836</td>
+      <td class="col-submissionDate clickable-cell" onclick="openSubmissionModal(1781523015481)">13 May 2026</td>
+      <td class="col-paymentTerms hidden-col">30 days</td>
+      <td class="col-dueDate">12 Jun 2026</td>
+      <td class="col-status">Pending <span style="color:#dc2626;font-weight:700;">OVERDUE</span></td>
+      <td class="col-remarks"></td>
+      <td><button class="btn btn-secondary" onclick="openEditInvoiceModal(1781523015481)">Edit</button> <button class="btn btn-danger" onclick="deleteInvoice(1781523015481)">Delete</button></td>
+    </tr></tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="modal-overlay" id="manualInvoiceModal">
+    <div class="modal">
+        <div class="modal-header">
+            <div>Add / Edit Invoice</div>
+            <button class="btn btn-secondary" onclick="closeModal(&#39;manualInvoiceModal&#39;)">✕</button>
+        </div>
+        <div class="modal-body">
+            <input type="hidden" id="manualInvoiceId" value="">
+            <div class="entry-grid">
+                <div class="form-group"><label class="form-label">Generic Customer</label><input id="manualGenericCustomer" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Customer Name</label><input id="manualCustomerName" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Responsible Person</label><input id="manualResponsiblePerson" class="form-input"></div>
+                <div class="form-group"><label class="form-label">LOB</label><select id="manualLob" class="form-select"><option>Project Debtor</option><option>Online Debtor</option></select></div>
+                <div class="form-group"><label class="form-label">Sub-LOB</label><select id="manualSubLob" class="form-select"><option>Project Debtor</option><option>Service debtor</option></select></div>
+                <div class="form-group"><label class="form-label">Region</label><select id="manualRegion" class="form-select"><option>East</option><option>West</option><option>North</option><option>South</option></select></div>
+                <div class="form-group"><label class="form-label">Invoice Number</label><input id="manualInvoiceNumber" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Invoice Date</label><input id="manualInvoiceDate" type="date" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Job Number</label><input id="manualJobNumber" class="form-input"></div>
+                <div class="form-group"><label class="form-label">PO Number</label><input id="manualPoNumber" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Invoice Amount</label><input id="manualInvoiceAmount" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Received Amount</label><input id="manualReceived" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Advance</label><input id="manualAdvance" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">TDS</label><input id="manualTds" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Retention</label><input id="manualRetention" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Withheld</label><input id="manualWithheld" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Credit Note</label><input id="manualCreditNote" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Submission Status</label><select id="manualSubmissionStatus" class="form-select"><option>Not Submitted</option><option>Bill Issue</option><option>Un adjusted</option><option>Will Not Credit (Bed Debt)</option><option>Submitted</option></select></div>
+                <div class="form-group"><label class="form-label">Submission Date</label><input id="manualSubmissionDate" type="date" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Payment Terms</label><input id="manualPaymentTerms" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Status</label><select id="manualStatus" class="form-select"><option>Pending</option><option>Partially Paid</option><option>Paid</option><option>Cancelled</option></select></div>
+                <div class="form-group" style="grid-column:1/-1"><label class="form-label">Remarks</label><input id="manualRemarks" class="form-input"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal(&#39;manualInvoiceModal&#39;)">Cancel</button>
+            <button class="btn btn-primary" onclick="saveManualInvoice()">Save Invoice</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="receivedModal">
+    <div class="modal" style="max-width:760px;">
+        <div class="modal-header"><div>Update Received Amount</div><button class="btn btn-secondary" onclick="closeModal(&#39;receivedModal&#39;)">✕</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="receivedInvoiceId" value="1781523015330">
+            <div class="form-group"><label class="form-label">Amount Received</label><input type="number" id="amountReceived" class="form-input" oninput="calculateOutstanding()"></div>
+            <div class="form-group"><label class="form-label">Advance Received</label><input type="number" id="advanceReceived" class="form-input" oninput="calculateOutstanding()"></div>
+            <div class="form-group"><label class="form-label">TDS</label><input type="number" id="tdsAmount" class="form-input" oninput="calculateOutstanding()"></div>
+            <div class="form-group"><label class="form-label">Retention</label><input type="number" id="retentionAmount" class="form-input" oninput="calculateOutstanding()"></div>
+            <div class="form-group"><label class="form-label">Withheld Amount</label><input type="number" id="withheldAmount" class="form-input" oninput="calculateOutstanding()"></div>
+            <div class="form-group"><label class="form-label">Credit Note</label><input type="number" id="creditNoteAmount" class="form-input" oninput="calculateOutstanding()"></div>
+            <div class="form-group"><label class="form-label">Calculated Outstanding</label><input type="text" id="calculatedOutstanding" class="form-input" readonly=""></div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal(&#39;receivedModal&#39;)">Cancel</button>
+            <button class="btn btn-primary" onclick="saveReceivedAmount()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="submissionModal">
+    <div class="modal" style="max-width:700px;">
+        <div class="modal-header"><div>Update Submission Details</div><button class="btn btn-secondary" onclick="closeModal(&#39;submissionModal&#39;)">✕</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="submissionInvoiceId" value="1781523015343">
+            <div class="form-group">
+                <label class="form-label">Submission Status</label>
+                <select id="submissionStatus" class="form-select" onchange="toggleSubmissionFields()">
+                    <option value="Not Submitted">Not Submitted</option>
+                    <option value="Bill Issue">Bill Issue</option>
+                    <option value="Un adjusted">Un adjusted</option>
+                    <option value="Will Not Credit (Bed Debt)">Will Not Credit (Bed Debt)</option>
+                    <option value="Submitted">Submitted</option>
+                </select>
+            </div>
+            <div id="submissionFields" style="display: none;">
+                <div class="form-group"><label class="form-label">Submission Date</label><input type="date" id="submissionDate" class="form-input" oninput="updateCalculatedDueDate()"></div>
+                <div class="form-group"><label class="form-label">Payment Terms (Days)</label><input type="number" id="paymentTerms" class="form-input" oninput="updateCalculatedDueDate()"></div>
+                <div class="form-group"><label class="form-label">Calculated Due Date</label><input type="text" id="calculatedDueDate" class="form-input" readonly=""></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal(&#39;submissionModal&#39;)">Cancel</button>
+            <button class="btn btn-primary" onclick="saveSubmissionDetails()">Save</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editInvoiceModal">
+    <div class="modal">
+        <div class="modal-header"><div>Edit Invoice</div><button class="btn btn-secondary" onclick="closeModal(&#39;editInvoiceModal&#39;)">✕</button></div>
+        <div class="modal-body">
+            <input type="hidden" id="editInvoiceId" value="1781523015457">
+            <div class="entry-grid">
+                <div class="form-group"><label class="form-label">Generic Customer</label><input id="editGenericCustomer" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Customer Name</label><input id="editCustomerName" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Responsible Person</label><input id="editResponsiblePerson" class="form-input"></div>
+                <div class="form-group"><label class="form-label">LOB</label><select id="editLob" class="form-select"><option>Project Debtor</option><option>Online Debtor</option></select></div>
+                <div class="form-group"><label class="form-label">Sub-LOB</label><select id="editSubLob" class="form-select"><option>Project Debtor</option><option>Service debtor</option></select></div>
+                <div class="form-group"><label class="form-label">Region</label><select id="editRegion" class="form-select"><option>East</option><option>West</option><option>North</option><option>South</option></select></div>
+                <div class="form-group"><label class="form-label">Invoice Number</label><input id="editInvoiceNumber" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Invoice Date</label><input id="editInvoiceDate" type="date" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Job Number</label><input id="editJobNumber" class="form-input"></div>
+                <div class="form-group"><label class="form-label">PO Number</label><input id="editPoNumber" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Invoice Amount</label><input id="editInvoiceAmount" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Received Amount</label><input id="editReceived" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Advance</label><input id="editAdvance" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">TDS</label><input id="editTds" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Retention</label><input id="editRetention" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Withheld</label><input id="editWithheld" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Credit Note</label><input id="editCreditNote" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Submission Status</label><select id="editSubmissionStatus" class="form-select"><option>Not Submitted</option><option>Bill Issue</option><option>Un adjusted</option><option>Will Not Credit (Bed Debt)</option><option>Submitted</option></select></div>
+                <div class="form-group"><label class="form-label">Submission Date</label><input id="editSubmissionDate" type="date" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Payment Terms</label><input id="editPaymentTerms" type="number" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Status</label><select id="editStatus" class="form-select"><option>Pending</option><option>Partially Paid</option><option>Paid</option><option>Cancelled</option></select></div>
+                <div class="form-group" style="grid-column:1/-1"><label class="form-label">Remarks</label><input id="editRemarks" class="form-input"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal(&#39;editInvoiceModal&#39;)">Cancel</button>
+            <button class="btn btn-primary" onclick="saveEditedInvoice()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let invoices = JSON.parse(localStorage.getItem('arDashboardInvoices') || '[]');
+let currentFilters = { kpi:null, quickFilter:'all', customer:null, person:null, search:'', ledger:{}, lob:'', subLob:'', region:'' };
+let customerSummaryMode = 'outstanding';
+let personSummaryMode = 'outstanding';
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const visibleCols = { gc:true, cn:true, rp:true, lob:true, subLob:true, region:true, invoiceNumber:true, invoiceDate:true, jobNumber:true, poNumber:true, invoiceAmount:true, receivedAmount:true, outstandingAmount:true, pendingAmount:true, submissionDate:true, paymentTerms:true, dueDate:true, status:true, remarks:true };
+
+const sampleData = [
+  { id:1, genericCustomer:'JLL', customerName:'Jones Lang LaSalle Property Consultants (India) Private Limited (05)', responsiblePerson:'Gaurav', lob:'Project Debtor', subLob:'Project Debtor', region:'East', invoiceNumber:'UP25263342', invoiceDate:'2026-05-20', jobNumber:'TN22R0173', poNumber:'', invoiceAmount:70186.4, received:0, advance:0, tds:0, retention:0, withheld:0, creditNote:0, submissionStatus:'Submitted', submissionDate:'2026-05-20', paymentTerms:30, status:'Pending', remarks:'' }
+];
+
+function toNumber(v){ const n = parseFloat(String(v ?? '').replace(/[^0-9.-]/g,'')); return Number.isFinite(n) ? n : 0; }
+function signedAmount(v){ const n = toNumber(v); return String(v ?? '').trim().startsWith('-') ? -Math.abs(n) : n; }
+function fmt(n){ n = Number(n || 0); return n < 0 ? '-₹' + Math.abs(n).toLocaleString('en-IN') : '₹' + n.toLocaleString('en-IN'); }
+function formatDate(d){ return d ? new Date(d).toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '--'; }
+function parseDateOnly(d){ if(!d) return null; const x = new Date(d); return Number.isNaN(x.getTime()) ? null : x; }
+function dueDate(submissionDate,paymentTerms){ if(!submissionDate || paymentTerms===null || paymentTerms===undefined || paymentTerms==='') return null; const d = parseDateOnly(submissionDate); if(!d) return null; d.setHours(0,0,0,0); d.setDate(d.getDate()+parseInt(paymentTerms)); return d; }
+function normalize(inv){ return { id:inv.id || Date.now()+Math.floor(Math.random()*100000), genericCustomer:inv.genericCustomer || '', customerName:inv.customerName || '', responsiblePerson:inv.responsiblePerson || '', lob:inv.lob || 'Project Debtor', subLob:inv.subLob || 'Project Debtor', region:inv.region || 'East', invoiceNumber:inv.invoiceNumber || '', invoiceDate:inv.invoiceDate || '', jobNumber:inv.jobNumber || '', poNumber:inv.poNumber || '', invoiceAmount:signedAmount(inv.invoiceAmount), received:signedAmount(inv.received), advance:signedAmount(inv.advance), tds:signedAmount(inv.tds), retention:signedAmount(inv.retention), withheld:signedAmount(inv.withheld), creditNote:signedAmount(inv.creditNote), submissionStatus:inv.submissionStatus || 'Not Submitted', submissionDate:inv.submissionDate || '', paymentTerms:inv.paymentTerms !== '' && inv.paymentTerms !== null && inv.paymentTerms !== undefined ? toNumber(inv.paymentTerms) : null, status:inv.status || 'Pending', remarks:inv.remarks || '' }; }
+function loadInvoices(){ const saved = JSON.parse(localStorage.getItem('arDashboardInvoices') || '[]'); return saved.length ? saved.map(normalize) : sampleData.map(normalize); }
+function saveToLocalStorage(){ localStorage.setItem('arDashboardInvoices', JSON.stringify(invoices)); localStorage.setItem('arDashboardInvoicesBackup', JSON.stringify(invoices)); }
+function isSubmitted(inv){ return String(inv.submissionStatus||'').trim().toLowerCase() === 'submitted'; }
+function isBillIssue(inv){ return String(inv.submissionStatus||'').trim().toLowerCase() === 'bill issue'; }
+function isBadDebt(inv){ return String(inv.submissionStatus||'').trim().toLowerCase() === 'will not credit (bed debt)'; }
+function isUnadjusted(inv){ return String(inv.submissionStatus||'').trim().toLowerCase() === 'un adjusted'; }
+function isNotSubmittedForSummary(inv){ return !isSubmitted(inv) || !inv.submissionDate; }
+function outstanding(inv){ return signedAmount(inv.invoiceAmount) - (signedAmount(inv.received)+signedAmount(inv.advance)+signedAmount(inv.tds)+signedAmount(inv.retention)+signedAmount(inv.withheld)+signedAmount(inv.creditNote)); }
+function pending(inv){ return outstanding(inv); }
+function isOverdue(inv){ const d = dueDate(inv.submissionDate, inv.paymentTerms); return !!(d && TODAY > d && outstanding(inv) > 0); }
+function isCurrentMonthDue(inv){ const d = dueDate(inv.submissionDate, inv.paymentTerms); return !!(d && d.getMonth() === TODAY.getMonth() && d.getFullYear() === TODAY.getFullYear() && !isOverdue(inv) && outstanding(inv) > 0); }
+function isNextMonthDue(inv){ const d = dueDate(inv.submissionDate, inv.paymentTerms); const next = new Date(TODAY.getFullYear(), TODAY.getMonth() + 1, 1); return !!(d && d.getMonth() === next.getMonth() && d.getFullYear() === next.getFullYear() && !isOverdue(inv) && outstanding(inv) > 0); }
+
+function getFilteredInvoices(){
+  let filtered = [...invoices];
+  if(currentFilters.lob) filtered = filtered.filter(i => i.lob === currentFilters.lob);
+  if(currentFilters.subLob) filtered = filtered.filter(i => i.subLob === currentFilters.subLob);
+  if(currentFilters.region) filtered = filtered.filter(i => i.region === currentFilters.region);
+
+  if(currentFilters.kpi === 'outstanding') filtered = filtered.filter(i => outstanding(i) !== 0);
+  if(currentFilters.kpi === 'overdue') filtered = filtered.filter(i => isOverdue(i));
+  if(currentFilters.kpi === 'notSubmitted') filtered = filtered.filter(i => isNotSubmittedForSummary(i) || isBillIssue(i) || isUnadjusted(i) || isBadDebt(i));
+
+  if(currentFilters.quickFilter === 'due') filtered = filtered.filter(i => isOverdue(i) || outstanding(i) > 0);
+  if(currentFilters.quickFilter === 'not-submitted') filtered = filtered.filter(i => isNotSubmittedForSummary(i) || isBillIssue(i) || isUnadjusted(i) || isBadDebt(i));
+
+  if(currentFilters.customer) filtered = filtered.filter(i => i.genericCustomer === currentFilters.customer);
+  if(currentFilters.person) filtered = filtered.filter(i => i.responsiblePerson === currentFilters.person);
+
+  if(currentFilters.search){
+    const s = currentFilters.search.toLowerCase();
+    filtered = filtered.filter(i => [i.invoiceNumber,i.customerName,i.poNumber,i.jobNumber].some(x => String(x||'').toLowerCase().includes(s)));
+  }
+
+  const lf = currentFilters.ledger || {};
+  Object.keys(lf).forEach(k => {
+    if(lf[k]) filtered = filtered.filter(i => String(i[k] || '').toLowerCase().includes(String(lf[k]).toLowerCase()));
+  });
+  return filtered;
+}
+
+function updateKPIs(){
+  const base = getFilteredInvoices();
+  document.getElementById('kpiOutstandingValue').textContent = fmt(base.reduce((s,i)=>s+outstanding(i),0));
+  document.getElementById('kpiOutstandingCount').textContent = `${base.length} invoices`;
+  const overdue = base.filter(isOverdue);
+  document.getElementById('kpiOverdueValue').textContent = fmt(overdue.reduce((s,i)=>s+outstanding(i),0));
+  document.getElementById('kpiOverdueCount').textContent = `${overdue.length} invoices`;
+  const ns = base.filter(i => isNotSubmittedForSummary(i) || isBillIssue(i) || isUnadjusted(i) || isBadDebt(i));
+  document.getElementById('kpiNotSubmittedValue').textContent = ns.length;
+  document.getElementById('kpiNotSubmittedCount').textContent = fmt(ns.reduce((s,i)=>s+Math.abs(signedAmount(i.invoiceAmount)),0)) + ' value';
+}
+
+function renderGenericCustomerSummary(){
+  const rows = getFilteredInvoices();
+  const data = {};
+  const currentMonthIdx = TODAY.getMonth();
+  const nextMonthIdx = (currentMonthIdx + 1) % 12;
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const currentMonthName = monthNames[currentMonthIdx];
+  const nextMonthName = monthNames[nextMonthIdx];
+
+  rows.forEach(inv => {
+    const key = inv.genericCustomer || 'Unknown';
+    if(!data[key]) data[key] = { overdue:0,current:0,next:0,notSubmitted:0,badDebt:0,unadjusted:0,billIssue:0 };
+    const out = outstanding(inv);
+    if(isBillIssue(inv)){ data[key].billIssue += out; return; }
+    if(isBadDebt(inv)){ data[key].badDebt += out; return; }
+    if(isUnadjusted(inv)){ data[key].unadjusted += out; return; }
+    if(isNotSubmittedForSummary(inv)){ data[key].notSubmitted += out; return; }
+    if(isOverdue(inv)) data[key].overdue += out;
+    else if(isCurrentMonthDue(inv)) data[key].current += out;
+    else if(isNextMonthDue(inv)) data[key].next += out;
+  });
+
+  const hasNext = Object.values(data).some(v => v.next !== 0);
+  const hasNotSubmitted = Object.values(data).some(v => v.notSubmitted !== 0);
+  const hasBadDebt = Object.values(data).some(v => v.badDebt !== 0);
+  const hasUnadjusted = Object.values(data).some(v => v.unadjusted !== 0);
+  const hasBillIssue = Object.values(data).some(v => v.billIssue !== 0);
+
+  const cols = ['Generic Customer','Total Overdue Amount',`${currentMonthName} Collection`];
+  if(hasNext) cols.push(`${nextMonthName} Collection`);
+  if(hasNotSubmitted) cols.push('Not Submitted');
+  if(hasBadDebt) cols.push('Bad Debts');
+  if(hasUnadjusted) cols.push('Unadjusted');
+  if(hasBillIssue) cols.push('Bill Issue');
+  document.getElementById('genericCustomerSummaryHead').innerHTML = `<tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr>`;
+
+  const cell = v => `<span class="${Number(v)<0?'negative-amount':''}">${fmt(v)}</span>`;
+  const totals = Object.values(data).reduce((t,d)=>({ overdue:t.overdue+d.overdue,current:t.current+d.current,next:t.next+d.next,notSubmitted:t.notSubmitted+d.notSubmitted,badDebt:t.badDebt+d.badDebt,unadjusted:t.unadjusted+d.unadjusted,billIssue:t.billIssue+d.billIssue }), {overdue:0,current:0,next:0,notSubmitted:0,badDebt:0,unadjusted:0,billIssue:0});
+  document.getElementById('genericCustomerSummaryBody').innerHTML =
+    Object.entries(data).map(([name,d]) => `<tr><td>${name}</td><td>${cell(d.overdue)}</td><td>${cell(d.current)}</td>${hasNext ? `<td>${cell(d.next)}</td>` : ''}${hasNotSubmitted ? `<td>${cell(d.notSubmitted)}</td>` : ''}${hasBadDebt ? `<td>${cell(d.badDebt)}</td>` : ''}${hasUnadjusted ? `<td>${cell(d.unadjusted)}</td>` : ''}${hasBillIssue ? `<td>${cell(d.billIssue)}</td>` : ''}</tr>`).join('') +
+    `<tr class="grand-total-row"><td>Grand Total</td><td>${cell(totals.overdue)}</td><td>${cell(totals.current)}</td>${hasNext ? `<td>${cell(totals.next)}</td>` : ''}${hasNotSubmitted ? `<td>${cell(totals.notSubmitted)}</td>` : ''}${hasBadDebt ? `<td>${cell(totals.badDebt)}</td>` : ''}${hasUnadjusted ? `<td>${cell(totals.unadjusted)}</td>` : ''}${hasBillIssue ? `<td>${cell(totals.billIssue)}</td>` : ''}</tr>`;
+}
+
+function updateCustomerSummary(){
+  const d = {};
+  getFilteredInvoices().forEach(inv => {
+    const k = inv.genericCustomer || 'Unknown';
+    if(!d[k]) d[k] = { total:0, outstanding:0, overdue:0, ns:0 };
+    d[k].total += signedAmount(inv.invoiceAmount);
+    d[k].outstanding += outstanding(inv);
+    if(isOverdue(inv)) d[k].overdue += outstanding(inv);
+    if(isNotSubmittedForSummary(inv) || isBillIssue(inv) || isUnadjusted(inv) || isBadDebt(inv)) d[k].ns += outstanding(inv);
+  });
+  document.getElementById('customerSummaryList').innerHTML = Object.entries(d).map(([k,v]) => `
+    <div class="summary-item ${currentFilters.customer===k?'active':''}" onclick="filterByCustomer('${k}')">
+      <div class="summary-item-name">${k}</div>
+      <div class="summary-item-value">${fmt(customerSummaryMode==='totalInvoice'?v.total:customerSummaryMode==='outstanding'?v.outstanding:customerSummaryMode==='overdue'?v.overdue:v.ns)}</div>
+    </div>`).join('');
+}
+
+function updatePersonSummary(){
+  const d = {};
+  getFilteredInvoices().forEach(inv => {
+    const k = inv.responsiblePerson || 'Unknown';
+    if(!d[k]) d[k] = { outstanding:0, overdue:0, ns:0 };
+    d[k].outstanding += outstanding(inv);
+    if(isOverdue(inv)) d[k].overdue += outstanding(inv);
+    if(isNotSubmittedForSummary(inv) || isBillIssue(inv) || isUnadjusted(inv) || isBadDebt(inv)) d[k].ns += outstanding(inv);
+  });
+  document.getElementById('personSummaryList').innerHTML = Object.entries(d).map(([k,v]) => `
+    <div class="summary-item ${currentFilters.person===k?'active':''}" onclick="filterByPerson('${k}')">
+      <div class="summary-item-name">${k}</div>
+      <div class="summary-item-value">${fmt(personSummaryMode==='outstanding'?v.outstanding:personSummaryMode==='overdue'?v.overdue:v.ns)}</div>
+    </div>`).join('');
+}
+
+function populateLedgerDropdowns(){
+  const all = [...invoices];
+  const fill = (id, head, list) => document.getElementById(id).innerHTML = head + list.map(x=>`<option value="${x}">${x}</option>`).join('');
+  fill('filterGenericCustomer','<option value="">Generic Customer</option>',[...new Set(all.map(i=>i.genericCustomer).filter(Boolean))].sort());
+  fill('filterCustomerName','<option value="">Customer Name</option>',[...new Set(all.map(i=>i.customerName).filter(Boolean))].sort());
+  fill('filterResponsiblePerson','<option value="">Responsible Person</option>',[...new Set(all.map(i=>i.responsiblePerson).filter(Boolean))].sort());
+  fill('filterLob','<option value="">LOB</option>',[...new Set(all.map(i=>i.lob).filter(Boolean))].sort());
+  fill('filterSubLob','<option value="">Sub-LOB</option>',[...new Set(all.map(i=>i.subLob).filter(Boolean))].sort());
+  fill('filterRegion','<option value="">Region</option>',[...new Set(all.map(i=>i.region).filter(Boolean))].sort());
+  document.getElementById('filterStatus').innerHTML = '<option value="">Status</option><option value="Pending">Pending</option><option value="Partially Paid">Partially Paid</option><option value="Paid">Paid</option><option value="Cancelled">Cancelled</option>';
+}
+
+function readLedgerFilters(){
+  currentFilters.ledger = {
+    genericCustomer:document.getElementById('filterGenericCustomer').value,
+    customerName:document.getElementById('filterCustomerName').value,
+    responsiblePerson:document.getElementById('filterResponsiblePerson').value,
+    lob:document.getElementById('filterLob').value,
+    subLob:document.getElementById('filterSubLob').value,
+    region:document.getElementById('filterRegion').value,
+    status:document.getElementById('filterStatus').value,
+    invoiceNumber:document.getElementById('filterInvoiceNumber').value,
+    jobNumber:document.getElementById('filterJobNumber').value,
+    poNumber:document.getElementById('filterPONumber').value
+  };
+}
+function applyLedgerFilters(){
+  readLedgerFilters();
+  currentFilters.lob=document.getElementById('lobFilter').value;
+  currentFilters.subLob=document.getElementById('subLobFilter').value;
+  currentFilters.region=document.getElementById('regionFilter').value;
+  refreshDashboard();
+}
+function clearLedgerFilters(){
+  ['filterGenericCustomer','filterCustomerName','filterResponsiblePerson','filterLob','filterSubLob','filterRegion','filterInvoiceNumber','filterJobNumber','filterPONumber','filterStatus','lobFilter','subLobFilter','regionFilter'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  currentFilters={kpi:null,quickFilter:'all',customer:null,person:null,search:'',ledger:{},lob:'',subLob:'',region:''};
+  refreshDashboard();
+}
+
+function toggleLedgerColumn(key){
+  visibleCols[key] = !visibleCols[key];
+  document.querySelectorAll('.col-'+key).forEach(el => el.classList.toggle('hidden-col', !visibleCols[key]));
+}
+function applyColumnVisibility(){
+  Object.keys(visibleCols).forEach(k => document.querySelectorAll('.col-'+k).forEach(el => el.classList.toggle('hidden-col', !visibleCols[k])));
+}
+
+function updateLedger(){
+  const filtered = getFilteredInvoices();
+  document.getElementById('ledgerInfo').textContent = `Showing ${filtered.length} invoices`;
+  document.getElementById('ledgerPendingValue').textContent = fmt(filtered.reduce((s,i)=>s+pending(i),0));
+  document.getElementById('ledgerLobValue').textContent = currentFilters.lob || 'All';
+  document.getElementById('ledgerSubLobValue').textContent = currentFilters.subLob || 'All';
+  document.getElementById('ledgerRegionValue').textContent = currentFilters.region || 'All';
+  const body = document.getElementById('ledgerTableBody');
+  if(!filtered.length){ body.innerHTML = '<tr><td colspan="20">No invoices found</td></tr>'; return; }
+  body.innerHTML = filtered.map(inv => {
+    const out = outstanding(inv), pend = pending(inv), d = dueDate(inv.submissionDate,inv.paymentTerms), over = isOverdue(inv), receivedTotal = signedAmount(inv.received)+signedAmount(inv.advance)+signedAmount(inv.tds)+signedAmount(inv.retention)+signedAmount(inv.withheld)+signedAmount(inv.creditNote);
+    return `<tr>
+      <td class="col-gc">${inv.genericCustomer||''}</td>
+      <td class="col-cn">${inv.customerName||''}</td>
+      <td class="col-rp">${inv.responsiblePerson||''}</td>
+      <td class="col-lob">${inv.lob||''}</td>
+      <td class="col-subLob">${inv.subLob||''}</td>
+      <td class="col-region">${inv.region||''}</td>
+      <td class="col-invoiceNumber"><strong>${inv.invoiceNumber||''}</strong></td>
+      <td class="col-invoiceDate">${formatDate(inv.invoiceDate)}</td>
+      <td class="col-jobNumber">${inv.jobNumber||''}</td>
+      <td class="col-poNumber">${inv.poNumber||''}</td>
+      <td class="col-invoiceAmount ${signedAmount(inv.invoiceAmount)<0?'negative-amount':''}">${fmt(inv.invoiceAmount)}</td>
+      <td class="col-receivedAmount clickable-cell ${receivedTotal<0?'negative-amount':''}" onclick="openReceivedModal(${inv.id})">${fmt(receivedTotal)}</td>
+      <td class="col-outstandingAmount ${out<0?'negative-amount':''}">${fmt(out)}</td>
+      <td class="col-pendingAmount ${pend<0?'negative-amount':''}">${fmt(pend)}</td>
+      <td class="col-submissionDate clickable-cell" onclick="openSubmissionModal(${inv.id})">${isSubmitted(inv) ? formatDate(inv.submissionDate) : 'Not Submitted'}</td>
+      <td class="col-paymentTerms">${inv.paymentTerms ? inv.paymentTerms + ' days' : '--'}</td>
+      <td class="col-dueDate">${d ? formatDate(d) : '--'}</td>
+      <td class="col-status">${inv.status||''}${over?' <span style="color:#dc2626;font-weight:700;">OVERDUE</span>':''}</td>
+      <td class="col-remarks">${inv.remarks||''}</td>
+      <td><button class="btn btn-secondary" onclick="openEditInvoiceModal(${inv.id})">Edit</button> <button class="btn btn-danger" onclick="deleteInvoice(${inv.id})">Delete</button></td>
+    </tr>`;
+  }).join('');
+  applyColumnVisibility();
+}
+
+function refreshDashboard(){ updateKPIs(); renderGenericCustomerSummary(); updateCustomerSummary(); updatePersonSummary(); populateLedgerDropdowns(); updateLedger(); }
+
+function openManualInvoiceModal(id=''){ document.getElementById('manualInvoiceModal').classList.add('active'); if(id){ const inv = invoices.find(x=>x.id===id); if(!inv) return; document.getElementById('manualInvoiceId').value=inv.id; document.getElementById('manualGenericCustomer').value=inv.genericCustomer||''; document.getElementById('manualCustomerName').value=inv.customerName||''; document.getElementById('manualResponsiblePerson').value=inv.responsiblePerson||''; document.getElementById('manualLob').value=inv.lob||'Project Debtor'; document.getElementById('manualSubLob').value=inv.subLob||'Project Debtor'; document.getElementById('manualRegion').value=inv.region||'East'; document.getElementById('manualInvoiceNumber').value=inv.invoiceNumber||''; document.getElementById('manualInvoiceDate').value=inv.invoiceDate||''; document.getElementById('manualJobNumber').value=inv.jobNumber||''; document.getElementById('manualPoNumber').value=inv.poNumber||''; document.getElementById('manualInvoiceAmount').value=inv.invoiceAmount||''; document.getElementById('manualReceived').value=inv.received||0; document.getElementById('manualAdvance').value=inv.advance||0; document.getElementById('manualTds').value=inv.tds||0; document.getElementById('manualRetention').value=inv.retention||0; document.getElementById('manualWithheld').value=inv.withheld||0; document.getElementById('manualCreditNote').value=inv.creditNote||0; document.getElementById('manualSubmissionStatus').value=inv.submissionStatus||'Not Submitted'; document.getElementById('manualSubmissionDate').value=inv.submissionDate||''; document.getElementById('manualPaymentTerms').value=inv.paymentTerms||''; document.getElementById('manualStatus').value=inv.status||'Pending'; document.getElementById('manualRemarks').value=inv.remarks||''; } }
+function saveManualInvoice(){ const id=document.getElementById('manualInvoiceId').value; const obj=normalize({ id:id?parseInt(id):Date.now(), genericCustomer:document.getElementById('manualGenericCustomer').value, customerName:document.getElementById('manualCustomerName').value, responsiblePerson:document.getElementById('manualResponsiblePerson').value, lob:document.getElementById('manualLob').value, subLob:document.getElementById('manualSubLob').value, region:document.getElementById('manualRegion').value, invoiceNumber:document.getElementById('manualInvoiceNumber').value, invoiceDate:document.getElementById('manualInvoiceDate').value, jobNumber:document.getElementById('manualJobNumber').value, poNumber:document.getElementById('manualPoNumber').value, invoiceAmount:document.getElementById('manualInvoiceAmount').value, received:document.getElementById('manualReceived').value, advance:document.getElementById('manualAdvance').value, tds:document.getElementById('manualTds').value, retention:document.getElementById('manualRetention').value, withheld:document.getElementById('manualWithheld').value, creditNote:document.getElementById('manualCreditNote').value, submissionStatus:document.getElementById('manualSubmissionStatus').value, submissionDate:document.getElementById('manualSubmissionDate').value, paymentTerms:document.getElementById('manualPaymentTerms').value, status:document.getElementById('manualStatus').value, remarks:document.getElementById('manualRemarks').value }); if(id) invoices=invoices.map(x=>x.id===parseInt(id)?obj:x); else invoices.unshift(obj); saveToLocalStorage(); closeModal('manualInvoiceModal'); refreshDashboard(); }
+function openEditInvoiceModal(id){ const inv=invoices.find(x=>x.id===id); if(!inv) return; ['editInvoiceId','editGenericCustomer','editCustomerName','editResponsiblePerson','editInvoiceNumber','editInvoiceDate','editJobNumber','editPoNumber','editInvoiceAmount','editReceived','editAdvance','editTds','editRetention','editWithheld','editCreditNote','editSubmissionDate','editPaymentTerms','editRemarks'].forEach((k,i)=>{}); document.getElementById('editInvoiceId').value=inv.id; document.getElementById('editGenericCustomer').value=inv.genericCustomer||''; document.getElementById('editCustomerName').value=inv.customerName||''; document.getElementById('editResponsiblePerson').value=inv.responsiblePerson||''; document.getElementById('editLob').value=inv.lob||'Project Debtor'; document.getElementById('editSubLob').value=inv.subLob||'Project Debtor'; document.getElementById('editRegion').value=inv.region||'East'; document.getElementById('editInvoiceNumber').value=inv.invoiceNumber||''; document.getElementById('editInvoiceDate').value=inv.invoiceDate||''; document.getElementById('editJobNumber').value=inv.jobNumber||''; document.getElementById('editPoNumber').value=inv.poNumber||''; document.getElementById('editInvoiceAmount').value=inv.invoiceAmount||''; document.getElementById('editReceived').value=inv.received||0; document.getElementById('editAdvance').value=inv.advance||0; document.getElementById('editTds').value=inv.tds||0; document.getElementById('editRetention').value=inv.retention||0; document.getElementById('editWithheld').value=inv.withheld||0; document.getElementById('editCreditNote').value=inv.creditNote||0; document.getElementById('editSubmissionStatus').value=inv.submissionStatus||'Not Submitted'; document.getElementById('editSubmissionDate').value=inv.submissionDate||''; document.getElementById('editPaymentTerms').value=inv.paymentTerms||''; document.getElementById('editStatus').value=inv.status||'Pending'; document.getElementById('editRemarks').value=inv.remarks||''; document.getElementById('editInvoiceModal').classList.add('active'); }
+function saveEditedInvoice(){ const id=parseInt(document.getElementById('editInvoiceId').value); const updated=normalize({ id, genericCustomer:document.getElementById('editGenericCustomer').value, customerName:document.getElementById('editCustomerName').value, responsiblePerson:document.getElementById('editResponsiblePerson').value, lob:document.getElementById('editLob').value, subLob:document.getElementById('editSubLob').value, region:document.getElementById('editRegion').value, invoiceNumber:document.getElementById('editInvoiceNumber').value, invoiceDate:document.getElementById('editInvoiceDate').value, jobNumber:document.getElementById('editJobNumber').value, poNumber:document.getElementById('editPoNumber').value, invoiceAmount:document.getElementById('editInvoiceAmount').value, received:document.getElementById('editReceived').value, advance:document.getElementById('editAdvance').value, tds:document.getElementById('editTds').value, retention:document.getElementById('editRetention').value, withheld:document.getElementById('editWithheld').value, creditNote:document.getElementById('editCreditNote').value, submissionStatus:document.getElementById('editSubmissionStatus').value, submissionDate:document.getElementById('editSubmissionDate').value, paymentTerms:document.getElementById('editPaymentTerms').value, status:document.getElementById('editStatus').value, remarks:document.getElementById('editRemarks').value }); invoices=invoices.map(x=>x.id===id?updated:x); saveToLocalStorage(); closeModal('editInvoiceModal'); refreshDashboard(); }
+function openReceivedModal(id){ const inv=invoices.find(x=>x.id===id); if(!inv) return; document.getElementById('receivedInvoiceId').value=id; document.getElementById('amountReceived').value=Math.max(0,signedAmount(inv.received)); document.getElementById('advanceReceived').value=Math.max(0,signedAmount(inv.advance)); document.getElementById('tdsAmount').value=Math.max(0,signedAmount(inv.tds)); document.getElementById('retentionAmount').value=Math.max(0,signedAmount(inv.retention)); document.getElementById('withheldAmount').value=Math.max(0,signedAmount(inv.withheld)); document.getElementById('creditNoteAmount').value=Math.max(0,signedAmount(inv.creditNote)); calculateOutstanding(); document.getElementById('receivedModal').classList.add('active'); }
+function saveReceivedAmount(){ const id=parseInt(document.getElementById('receivedInvoiceId').value); const inv=invoices.find(x=>x.id===id); if(!inv) return; inv.received=toNumber(document.getElementById('amountReceived').value); inv.advance=toNumber(document.getElementById('advanceReceived').value); inv.tds=toNumber(document.getElementById('tdsAmount').value); inv.retention=toNumber(document.getElementById('retentionAmount').value); inv.withheld=toNumber(document.getElementById('withheldAmount').value); inv.creditNote=toNumber(document.getElementById('creditNoteAmount').value); saveToLocalStorage(); closeModal('receivedModal'); refreshDashboard(); }
+function calculateOutstanding(){ const id=parseInt(document.getElementById('receivedInvoiceId').value); const inv=invoices.find(x=>x.id===id); if(!inv) return; const received=toNumber(document.getElementById('amountReceived').value), advance=toNumber(document.getElementById('advanceReceived').value), tds=toNumber(document.getElementById('tdsAmount').value), retention=toNumber(document.getElementById('retentionAmount').value), withheld=toNumber(document.getElementById('withheldAmount').value), creditNote=toNumber(document.getElementById('creditNoteAmount').value); document.getElementById('calculatedOutstanding').value=fmt(signedAmount(inv.invoiceAmount)-(received+advance+tds+retention+withheld+creditNote)); }
+function openSubmissionModal(id){ const inv=invoices.find(x=>x.id===id); if(!inv) return; document.getElementById('submissionInvoiceId').value=id; document.getElementById('submissionStatus').value=inv.submissionStatus||'Not Submitted'; document.getElementById('submissionDate').value=inv.submissionDate||''; document.getElementById('paymentTerms').value=inv.paymentTerms||''; toggleSubmissionFields(); updateCalculatedDueDate(); document.getElementById('submissionModal').classList.add('active'); }
+function toggleSubmissionFields(){ document.getElementById('submissionFields').style.display=document.getElementById('submissionStatus').value==='Submitted'?'block':'none'; }
+function updateCalculatedDueDate(){ const d=document.getElementById('submissionDate').value, p=document.getElementById('paymentTerms').value; document.getElementById('calculatedDueDate').value=(d&&p)?formatDate(dueDate(d,p)):'';
+}
+function saveSubmissionDetails(){ const id=parseInt(document.getElementById('submissionInvoiceId').value); const inv=invoices.find(x=>x.id===id); if(!inv) return; inv.submissionStatus=document.getElementById('submissionStatus').value; inv.submissionDate=inv.submissionStatus==='Submitted'?document.getElementById('submissionDate').value:''; inv.paymentTerms=inv.submissionStatus==='Submitted'?toNumber(document.getElementById('paymentTerms').value):null; saveToLocalStorage(); closeModal('submissionModal'); refreshDashboard(); }
+function deleteInvoice(id){ if(!confirm('Delete this invoice?')) return; invoices=invoices.filter(x=>x.id!==id); saveToLocalStorage(); refreshDashboard(); }
+function closeModal(id){ document.getElementById(id).classList.remove('active'); }
+function setSummaryMode(type,mode){ if(type==='customer') customerSummaryMode=mode; else personSummaryMode=mode; refreshDashboard(); }
+function applyQuickFilter(filter){ currentFilters.quickFilter=filter; document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===filter)); refreshDashboard(); }
+function filterByKPI(kpi){ currentFilters.kpi=currentFilters.kpi===kpi?null:kpi; document.querySelectorAll('.kpi-card').forEach(c=>c.classList.toggle('active',c.dataset.kpi===currentFilters.kpi)); refreshDashboard(); }
+function filterByCustomer(customer){ currentFilters.customer=currentFilters.customer===customer?null:customer; currentFilters.person=null; refreshDashboard(); }
+function filterByPerson(person){ currentFilters.person=currentFilters.person===person?null:person; currentFilters.customer=null; refreshDashboard(); }
+function performSearch(){ currentFilters.search=document.getElementById('globalSearch').value; refreshDashboard(); }
+function importExcelFile(event){ const file=event.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=function(e){ const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]]; const rows=XLSX.utils.sheet_to_json(ws,{defval:''}); const mapped=rows.map((row,idx)=>normalize({ id:Date.now()+idx, genericCustomer:row['Generic Customer']||row['genericCustomer']||'', customerName:row['Customer Name']||row['customerName']||'', responsiblePerson:row['Responsible Person']||row['responsiblePerson']||'', lob:row['LOB']||row['lob']||'Project Debtor', subLob:row['Sub-LOB']||row['Sub Lob']||row['subLob']||'Project Debtor', region:row['Region']||row['region']||'East', invoiceNumber:row['Invoice Number']||row['invoiceNumber']||'', invoiceDate:row['Invoice Date']||row['invoiceDate']||'', jobNumber:row['Job Number']||row['jobNumber']||'', poNumber:row['PO Number']||row['poNumber']||'', invoiceAmount:row['Invoice Amount']||row['invoiceAmount'], received:row['Received Amount']||row['received'], advance:row['Advance']||row['advance'], tds:row['TDS']||row['tds'], retention:row['Retention']||row['retention'], withheld:row['Withheld']||row['withheld'], creditNote:row['Credit Note']||row['creditNote'], submissionStatus:row['Submission Status']||row['submissionStatus']||'Not Submitted', submissionDate:row['Submission Date']||row['submissionDate']||'', paymentTerms:row['Payment Terms']||row['paymentTerms'], status:row['Status']||row['status']||'Pending', remarks:row['Remarks']||row['remarks']||'' })); invoices=invoices.length?mergeInvoices(invoices,mapped):mapped; saveToLocalStorage(); refreshDashboard(); event.target.value=''; }; reader.readAsArrayBuffer(file); }
+function downloadInvoiceTemplate(){ const headers=['Generic Customer','Customer Name','Responsible Person','LOB','Sub-LOB','Region','Invoice Number','Invoice Date','Job Number','PO Number','Invoice Amount','Received Amount','Advance','TDS','Retention','Withheld','Credit Note','Submission Status','Submission Date','Payment Terms','Status','Remarks']; const sample=[['JLL','Jones Lang LaSalle Property Consultants (India) Private Limited (05)','Gaurav','Project Debtor','Project Debtor','East','UP25260351','2026-05-20','TN22R0175','',30311.84,0,0,0,0,0,0,'Submitted','2026-05-20',30,'Pending','Sample']]; const ws=XLSX.utils.aoa_to_sheet([headers,...sample]); const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Invoices'); XLSX.writeFile(wb,'invoice_template.xlsx'); }
+function exportTableData() {}
+function escapeCSV(v){ return `"${String(v ?? '').replace(/"/g,'""')}"`; }
+function getExportRows(list){ return list.map(inv=>[inv.genericCustomer,inv.customerName,inv.responsiblePerson,inv.lob,inv.subLob,inv.region,inv.invoiceNumber,inv.invoiceDate,inv.jobNumber,inv.poNumber,signedAmount(inv.invoiceAmount),signedAmount(inv.received)+signedAmount(inv.advance)+signedAmount(inv.tds)+signedAmount(inv.retention)+signedAmount(inv.withheld)+signedAmount(inv.creditNote),outstanding(inv),pending(inv),isSubmitted(inv)?inv.submissionDate:'Not Submitted',inv.submissionDate||'',inv.paymentTerms||'',dueDate(inv.submissionDate,inv.paymentTerms)?formatDate(dueDate(inv.submissionDate,inv.paymentTerms)):'',inv.status||'',inv.remarks||'']); }
+function downloadCSV(content,filename){ const blob=new Blob([content],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000); }
+function exportToCSV(rows,filename){ const headers=['Generic Customer','Customer Name','Responsible Person','LOB','Sub-LOB','Region','Invoice Number','Invoice Date','Job Number','PO Number','Invoice Amount','Received Amount','Outstanding Amount','Pending Amount','Submission Status','Submission Date','Payment Terms','Due Date','Status','Remarks']; const csv=[headers.map(escapeCSV).join(','),...rows.map(r=>r.map(escapeCSV).join(','))].join('\n'); downloadCSV(csv,filename); }
+function exportCurrentView(){ exportToCSV(getExportRows(getFilteredInvoices()),'ar_dashboard_current_view.csv'); }
+function exportMasterLedger(){ exportToCSV(getExportRows(invoices),'ar_dashboard_master_ledger.csv'); }
+function mergeInvoices(existing,incoming){ const map=new Map(); existing.map(normalize).forEach(inv=>{ const key=[inv.invoiceNumber,inv.customerName,inv.poNumber,inv.jobNumber].map(x=>String(x).trim().toLowerCase()).join('||'); map.set(key,inv); }); incoming.map(normalize).forEach(inv=>{ const key=[inv.invoiceNumber,inv.customerName,inv.poNumber,inv.jobNumber].map(x=>String(x).trim().toLowerCase()).join('||'); if(map.has(key)){ const old=map.get(key); map.set(key,{...old,...inv,id:old.id}); } else map.set(key,inv); }); return [...map.values()]; }
+
+document.addEventListener('DOMContentLoaded', function(){
+  if(!invoices.length) invoices = sampleData.map(normalize);
+  saveToLocalStorage();
+  refreshDashboard();
+  applyColumnVisibility();
+});
+</script>
+
+</body></html>
